@@ -4,7 +4,7 @@ README FILE FROM JAKEASHACKS
 
 UNSAFE BUILD: Installs Cydia and substrate (is a full jailbreak for 11.2.x)
 
-IF YOU VALUE YOUR DEVICE WAIT FOR UPDATES!!!
+IF YOU VALUE YOUR DEVICE STAY AWAY
 
 iOS 11.0-11.3.1 jailbreak. Gets root, escapes sandbox, patches codesign (userland only), bind shell, nvram unlock (from Electra), host_get_special_port 4 (from Electra), code injection (from Electra; injects its amfid patch after using QiLin's since it's way better), ~~SSH (dropbear)~~
 
@@ -31,5 +31,4 @@ LaunchDaemons are also supported, you can drop their plists in the iosbinpack64/
 
 Future plans include: getting rid of QiLin and implementing everything i need open-source, (already made progress!), fix remounting for 11.3.x (I guess I have no other choice rather than wait for QiLin/LiberiOS/Electra)
 
-Credits: Uses jakeashacks empty_list fork and makes use of files from LycaJB and other jailbreaks not publicly released
- Ian Beer for empty_list and mach_portal, Jonathan Levin for amfid patch, Jonathan Seals for find_kernel_base, Electra Team (especially stek29) and PsychoTea (@iBSparkes), 1GamerDev for reliability improvements
+Credits: Uses jakeashacks empty_list fork and makes use of files from LycaJB and other jailbreaks not publicly released Thanks to Ian Beer for empty_list and mach_portal, Jonathan Levin for amfid patch, Jonathan Seals for find_kernel_base, Electra Team (especially stek29) and PsychoTea (@iBSparkes), 1GamerDev for reliability improvements
