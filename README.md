@@ -1,8 +1,5 @@
 # Sn0wF4ll
 
-Credits:
-Uses jakeashacks empty_list and males use of files from LycaJB and other jailbreaks not publicly released
-
 UNSAFE BUILD: Installs Cydia and substrate (is a full jailbreak for 11.2.x)
 
 IF YOU VALUE YOUR DEVICE WAIT FOR UPDATES!!!
@@ -32,4 +29,5 @@ LaunchDaemons are also supported, you can drop their plists in the iosbinpack64/
 
 Future plans include: getting rid of QiLin and implementing everything i need open-source, (already made progress!), fix remounting for 11.3.x (I guess I have no other choice rather than wait for QiLin/LiberiOS/Electra)
 
-Credits to: Ian Beer for empty_list and mach_portal, Jonathan Levin for amfid patch, Jonathan Seals for find_kernel_base, Electra Team (especially stek29) and PsychoTea (@iBSparkes), 1GamerDev for reliability improvements
+Credits: Uses jakeashacks empty_list fork and makes use of files from LycaJB and other jailbreaks not publicly released
+ Ian Beer for empty_list and mach_portal, Jonathan Levin for amfid patch, Jonathan Seals for find_kernel_base, Electra Team (especially stek29) and PsychoTea (@iBSparkes), 1GamerDev for reliability improvements
