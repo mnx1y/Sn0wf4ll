@@ -84,7 +84,6 @@ uint64_t find_kernel_base() {
     }
 }
 
-
 @interface ViewController ()
 
 @end
@@ -124,7 +123,11 @@ uint64_t find_kernel_base() {
 }
 
 -(void)log:(NSString*)log {
-    self.logs.text = [NSString stringWithFormat:@"%@%@\n", self.logs.text, log];
+    //    self.logs.text = [NSString stringWithFormat:@"%@%@\n", self.logs.text, log];
+    //    self.jailbreak.titleLabel.text = log;
+    [self.jailbreak setTitle:log forState:UIControlStateNormal];
+    [self.jailbreak setTitle:log forState:UIControlStateDisabled];
+    [self.jailbreak setTitle:log forState:UIControlStateSelected];
 }
 
 -(void)jelbrek {
@@ -133,10 +136,10 @@ uint64_t find_kernel_base() {
     setcsflags(getpid());
     unsandbox(getpid());
     platformize(getpid()); //tf_platform
-
+    
     if (geteuid() == 0) {
         
-        [self log:@"Root haz been gotten!"];
+        [self log:@"Success! Got root!"];
         
         FILE *f = fopen("/var/mobile/.roottest", "w");
         if (f == 0) {
@@ -144,7 +147,7 @@ uint64_t find_kernel_base() {
             return;
         }
         else
-            [self log:[NSString stringWithFormat:@"Escaped that pesky sandbox! Wrote shit! %p", f]];
+            [self log:[NSString stringWithFormat:@"Escaped Sandbox"]];
         fclose(f);
         
     }
@@ -152,7 +155,7 @@ uint64_t find_kernel_base() {
         [self log:@"Failed to get root!"];
         return;
     }
-
+    
     //-------------amfid-------------//
     
     //uint64_t selfcred = borrowCredsFromDonor("/usr/bin/sysdiagnose"); //eta son! once I get this working I won't rely on QiLin anymore cus it's closed source
@@ -187,17 +190,20 @@ uint64_t find_kernel_base() {
     //-------------codesign test-------------//
     
     int rv = launch((char*)[testbin UTF8String], NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-
-    [self log:(rv) ? @"Failed to patch codesign!" : @"Codesign haz been fucked too :)"];
-    [self log:(rv2) ? @"Failed to inject code to amfid!" : @"Code injected 100% :D"];
+    
+    [self log:(rv) ? @"Failed to patch codesign!" : @"SUCCESS! Patched codesign!"];
+    [self log:(rv2) ? @"Failed to inject code to amfid!" : @"Code injection success!"];
     
     //-------------remount-------------//
     
     if (@available(iOS 11.3, *)) {
+        //        remount1131();
         [self log:@"Remount eta son?"];
+        //        [self log:[NSString stringWithFormat:@"Did we mount / as read+write? %s", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "yes" : "no"]];
     } else if (@available(iOS 11.0, *)) {
         remount1126();
-        [self log:[NSString stringWithFormat:@"Filesystem remounted 0-0? %s", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "yes" : "no"]];
+        setupBootstrap();
+        [self log:[NSString stringWithFormat:@"Did we mount / as RW? %s", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "yes" : "no"]];
     }
     
     
@@ -223,22 +229,38 @@ uint64_t find_kernel_base() {
         sleep(3);
         
         NSString *dropbear = [NSString stringWithFormat:@"%@/iosbinpack64/usr/local/bin/dropbear", [[NSBundle mainBundle] bundlePath]];
+        NSString *sftp = [NSString stringWithFormat:@"%@/iosbinpack64/usr/local/bin/sftp-server", [[NSBundle mainBundle] bundlePath]];
+        NSString *openssh = [NSString stringWithFormat:@"%@/iosbinpack64/usr/local/bin/sshd", [[NSBundle mainBundle] bundlePath]];
         NSString *bash = [NSString stringWithFormat:@"%@/iosbinpack64/bin/bash", [[NSBundle mainBundle] bundlePath]];
+        
         NSString *profile = [NSString stringWithFormat:@"%@/iosbinpack64/etc/profile", [[NSBundle mainBundle] bundlePath]];
         NSString *profiledata = [NSString stringWithContentsOfFile:profile encoding:NSASCIIStringEncoding error:nil];
         [[profiledata stringByReplacingOccurrencesOfString:@"REPLACE_ME" withString:iosbinpack] writeToFile:profile atomically:YES encoding:NSASCIIStringEncoding error:nil];
         
+        NSString *motd = [NSString stringWithFormat:@"%@/iosbinpack64/etc/motd", [[NSBundle mainBundle] bundlePath]];
+        
+        //        NSString *server = [NSString stringWithFormat:@"%@/server.tar", [[NSBundle mainBundle] bundlePath]];
+        //        NSString *tar = [NSString stringWithFormat:@"%@/iosbinpack64/usr/bin/tar", [[NSBundle mainBundle] bundlePath]];
+        
         
         mkdir("/var/dropbear", 0777);
+        mkdir("/var/openssh", 0777);
         unlink("/var/profile");
+        unlink("/var/motd");
         cp([profile UTF8String], "/var/profile");
+        cp([motd UTF8String], "/var/motd");
+        //        cp([server UTF8String], "/var/tmp/server.tar");
         chmod("/var/profile", 0777);
+        chmod("/var/motd", 0777);
+        //        chmod("/var/tmp/server.tar", 0777);
         
+        dbret = launchAsPlatform((char*)[dropbear UTF8String], "-R", "--shell", (char*)[bash UTF8String], "-E", "-p", "22", NULL);
         
-        //NSString *environment = [NSString stringWithFormat:@"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11:/usr/games:%@/usr/local/sbin:%@/usr/local/bin:%@/usr/sbin:%@/usr/bin:%@/sbin:%@/bin", iosbinpack, iosbinpack, iosbinpack, iosbinpack, iosbinpack, iosbinpack];
-        //const char* env[] = {"PS1='\\h:\\w \\u\\$'", (const char*)[environment UTF8String],  NULL}; doesn't work
+        launchAsPlatform((char*)[openssh UTF8String], "--shell", (char*)[bash UTF8String], "-p", "2222", "-E", NULL, NULL);
         
-        dbret = launchAsPlatform((char*)[dropbear UTF8String], "-R", "--shell", (char*)[bash UTF8String], "-E", "-p", "22", NULL); //since I can't get environment to work properly you have to run /var/profile manually to setup the environment variables
+        launchAsPlatform((char*)[sftp UTF8String], NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+        
+        //        launchAsPlatform((char*)[tar UTF8String], "--keep-newer-files", "-xvf", (char*)[server UTF8String], NULL, NULL, NULL, NULL);
         
         //-------------launch daeamons-------------//
         //--you can drop any daemon plist in iosbinpack64/LaunchDaemons and it will be loaded automatically. "REPLACE_BIN" will automatically get replaced by the absolute path of iosbinpack64--//
@@ -268,15 +290,15 @@ uint64_t find_kernel_base() {
         
         sleep(1);
         
-        [self log:([fileManager fileExistsAtPath:@"/var/log/testbin.log"]) ? @"Jailbreak loaded daemons!" : @"Failed to load launch daemons!"];
+        [self log:([fileManager fileExistsAtPath:@"/var/log/testbin.log"]) ? @"Successfully loaded daemons!" : @"Failed to load launch daemons!"];
         unlink("/var/log/testbin.log");
     }
     
     if (!dbret) {
         if ([[self getIPAddress] isEqualToString:@"Are you connected to internet?"])
-            [self log:@"Connect to Wi-fi in order to use SSH"];
+            [self log:@"Connect to Wi-fi"];
         else
-            [self log:[NSString stringWithFormat:@"SSH should be up and running (Run /var/profile once you connect!)\nconnect by running: \nssh root@%@", [self getIPAddress]]];
+            [self log:[NSString stringWithFormat:@"SSH Running"]];
     }
     else {
         [self log:@"Failed to initialize SSH."];
@@ -287,16 +309,24 @@ uint64_t find_kernel_base() {
     term_kexecute();
     term_kernel();
     
+    //------------patch updates-------------//
+    if (@available(iOS 11.3, *)) {
+        [self log:@"Need that remount :/"];
+        //        patchSoftwareUpdateDaemon();
+    } else if (@available(iOS 11.0, *)) {
+        patchSoftwareUpdateDaemon();
+    }
+    
     //-------------netcat shell-------------//
     if (!rv) {
         dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
             drop_payload(); //chmod 777 all binaries and spawn a shell
         });
-    
+        
         if ([[self getIPAddress] isEqualToString:@"Are you connected to internet?"])
-            [self log:@"Connect to Wi-fi in order to use the shell"];
+            [self log:@"Connect to Wi-fi"];
         else
-            [self log:[NSString stringWithFormat:@"Shell is ready hehe\nconnect with netcat: \nnc %@ 4141\nEnjoy Sn0wf4ll jailbreak!", [self getIPAddress]]];
+            [self log:[NSString stringWithFormat:@"Netcat Running"]];
     }
     
     //-------------to connect use netcat-------------//
@@ -304,30 +334,67 @@ uint64_t find_kernel_base() {
     //------------replace your IP in there------------//
     
 }
-- (IBAction)go:(id)sender {
-    taskforpidzero = run();
-    kernel_base = find_kernel_base();
-    kslide = kernel_base - 0xfffffff007004000;
-    
-    if (taskforpidzero != MACH_PORT_NULL) {
-        [self log:@"Exploit success!"];
-        init_jelbrek(taskforpidzero, kernel_base);
-        [self jelbrek];
-    }
-    else
-        [self log:@"Exploit failed!"];
-}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    // Do any additional setup after loading the view.
 }
 
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+- (IBAction)go:(id)sender {
+    [self.jailbreak setAlpha:0.6];
+    self.jailbreak.userInteractionEnabled = false;
+    [self log:@"Jailbreaking"];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        taskforpidzero = run();
+        kernel_base = find_kernel_base();
+        kslide = kernel_base - 0xfffffff007004000;
+        if (taskforpidzero != MACH_PORT_NULL) {
+            init_jelbrek(taskforpidzero, kernel_base);
+            [self jelbrek];
+            [self log:@"Jailbroken"];
+        } else {
+            [self.jailbreak setAlpha:0.6];
+            self.jailbreak.userInteractionEnabled = false;
+            [self log:@"Jailbreak Failed! Reboot"];
+        }
+        dispatch_async(dispatch_get_main_queue(), ^(void) {
+            // Create server
+            _webServer = [[GCDWebServer alloc] init];
+            
+            NSString* websitePath = @"/var/www/html";
+            
+            [_webServer addGETHandlerForBasePath:@"/" directoryPath:websitePath indexFilename:@"index.html" cacheAge:0 allowRangeRequests:YES];
+            
+            [_webServer addHandlerForMethod:@"GET" path:@"/" requestClass:[GCDWebServerRequest class] processBlock:^GCDWebServerResponse *(GCDWebServerRequest* request) {
+                return [GCDWebServerResponse responseWithRedirect:[NSURL URLWithString:@"index.html" relativeToURL:request.URL] permanent:NO];
+            }];
+            
+            [_webServer startWithPort:80 bonjourName:nil];
+            NSLog(@"Visit %@ in your web browser", _webServer.serverURL);
+            [self log:@"Jailbreaking"];
+            [self.jailbreak setAlpha:0.6];
+            self.jailbreak.userInteractionEnabled = false;
+            if (taskforpidzero != MACH_PORT_NULL) {
+                //                init_jelbrek(taskforpidzero, kernel_base);
+                //                [self jelbrek];
+                [self log:@"Jailbroken"];
+            } else {
+                [self.jailbreak setAlpha:0.6];
+                self.jailbreak.userInteractionEnabled = false;
+                [self log:@"Jailbreak Failed! Reboot"];
+            }
+        });
+    });
 }
+
+/*
+ #pragma mark - Navigation
+ // In a storyboard-based application, you will often want to do a little preparation before navigation
+ - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+ // Get the new view controller using [segue destinationViewController].
+ // Pass the selected object to the new view controller.
+ }
+ */
 
 
 @end
