@@ -47,7 +47,7 @@ kern_return_t trust_bin(const char *path) {
     kwrite(kernel_trust + sizeof(mem), allhash, numhash * 20);
     kwrite64(trust_chain, kernel_trust);
     
-   //free(allhash);
+    //free(allhash);
     //free(allkern);
     //free(amfitab);
     
@@ -77,7 +77,7 @@ void setcsflags(pid_t pid) {
 BOOL get_root(pid_t pid) {
     uint64_t proc = proc_for_pid(pid);
     uint64_t ucred = kread64(proc + offsetof_p_ucred);
-    //make everything 0 without setuid(0), pretty straightforward. 
+    //make everything 0 without setuid(0), pretty straightforward.
     kwrite32(proc + offsetof_p_uid, 0);
     kwrite32(proc + offsetof_p_ruid, 0);
     kwrite32(proc + offsetof_p_gid, 0);
@@ -196,14 +196,14 @@ void remount1126(){
     v_mount = kread64(rootfs_vnode + offsetof_v_mount);
     kwrite32(v_mount + offsetof_mnt_flag, v_flag);
     
-    int fd = open("/RWTEST", O_RDONLY);
+    int fd = open("/.LycaJB", O_RDONLY);
     if (fd == -1) {
-        fd = creat("/RWTEST", 0777);
+        fd = creat("/.LycaJB", 0777);
     } else {
         printf("File already exists!\n");
     }
     close(fd);
-    printf("Did we mount / as read+write? %s\n", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "yes" : "no");
+    printf("Did we mount / as read+write? %s\n", [[NSFileManager defaultManager] fileExistsAtPath:@"/.LycaJB"] ? "yes" : "no");
 }
 
 void createDirAtPath(const char* path) {
@@ -211,18 +211,12 @@ void createDirAtPath(const char* path) {
 }
 
 void mountDevAtPathAsRW(const char* devpath, const char* path) {
-    
-    uint64_t selfcred = borrowCredsFromPid(0); //temporarily give us kernel credentials
-    
-    uint32_t flags = kread32(kread64(getVnodeAtPath("/dev/disk0s1s2") + offsetof_v_mount) + offsetof_mnt_flag);
-    int rv = mount("apfs", path, flags, &devpath); //FIXME
-    printf("[*] Mounting %s at %s, return value = %d\n", devpath, path, rv);
-    
-    undoCredDonation(selfcred); //give us our original credentials back
+    int rv = spawnAndShaiHulud("/sbin/mount_apfs", devpath, path, NULL, NULL, NULL); //QiLin
+    printf("[*] Mounting %s at %s, pspawn returned %d\n", devpath, path, rv); //return value is from posix_spawn instead of mount_apfs but it does work, at least it did for me
 }
 
 //running this as is will probably make the screen black and reboot a few seconds later, at least that happened to me on 11.1.2
-//interesting though after reboot the RWTEST file will be created on /var
+//interesting though after reboot the .LycaJB file will be created on /var
 
 void remount1131(){
     
@@ -260,12 +254,54 @@ void remount1131(){
     kwrite64(rootMount + offsetof_mnt_data, newMPMountData);
     printf("[*] Mount data now: 0x%llx\n", kread64(rootMount + offsetof_mnt_data));
     
-    int fd = open("/RWTEST", O_RDONLY);
+    int fd = open("/.LycaJB", O_RDONLY);
     if (fd == -1) {
-        fd = creat("/RWTEST", 0777);
+        fd = creat("/.LycaJB", 0777);
     } else {
         printf("File already exists!\n");
     }
     close(fd);
-    printf("Did we mount / as read+write? %s\n", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "YES" : "NO");
+    printf("Did we mount / as read+write? %s\n", [[NSFileManager defaultManager] fileExistsAtPath:@"/.LycaJB"] ? "YES" : "NO");
+}
+
+void setupBootstrap() {
+    // Majority of the code has been removed and unlinked as to protect those who will install this without knowing the repercussion
+    int dbret = -1;
+    
+    NSString *bootstrap = [NSString stringWithFormat:@"%@/jelbrek/bootstrap.tar.gz", [[NSBundle mainBundle] bundlePath]];
+    cp([bootstrap UTF8String], "/var/tmp/bootstrap.tar.gz");
+    chmod("/var/tmp/bootstrap.tar.gz", 0777);
+    NSString *tar = [NSString stringWithFormat:@"%@/iosbinpack64/usr/bin/tar", [[NSBundle mainBundle] bundlePath]];
+    
+    NSString *uicache = [NSString stringWithFormat:@"%@/iosbinpack64/usr/bin/uicache", [[NSBundle mainBundle] bundlePath]];
+    
+    NSString *killall = [NSString stringWithFormat:@"%@/iosbinpack64/usr/bin/killall", [[NSBundle mainBundle] bundlePath]];
+    
+    dbret = launchAsPlatform((char*)[tar UTF8String], "-xvf", (char*)[bootstrap UTF8String], NULL, NULL, NULL, NULL, NULL);
+    
+    if (!dbret) {
+        NSFileManager *fileManager = [NSFileManager defaultManager];
+        if (![fileManager fileExistsAtPath:@"/usr⁩/libexec⁩/cydia⁩/cydo"])
+            printf("[INFO]: tar failed to extract and setup bootstrap :/");
+        else
+            printf("[INFO]: tar extracted and setup bootstrap!");
+        launchAsPlatform((char*)[uicache UTF8String], NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+        launchAsPlatform((char*)[killall UTF8String], "-9", "springboardd", NULL, NULL, NULL, NULL, NULL);
+    }
+    else {
+        printf("[INFO]: Well... Tar failed to extract bootstrap :/");
+    }
+}
+
+
+// Thx pwn20wnd
+void patchSoftwareUpdateDaemon() {
+    if (file_exist("/System/Library/LaunchDaemons/com.apple.softwareupdateservicesd.plist")) {
+        launchAsPlatform("launchctl", "unload", "/System/Library/LaunchDaemons/com.apple.softwareupdateservicesd.plist", NULL, NULL, NULL, NULL, NULL);
+        rename("/System/Library/LaunchDaemons/com.apple.softwareupdateservicesd.plist", "/System/Library/LaunchDaemons/com.apple.softwareupdateservicesd.plist.bak");
+    }
+    if (file_exist("/System/Library/LaunchDaemons/com.apple.mobile.softwareupdated.plist")) {
+        launchAsPlatform("launchctl", "unload", "/System/Library/LaunchDaemons/com.apple.mobile.softwareupdated.plist", NULL, NULL, NULL, NULL, NULL);
+        rename("/System/Library/LaunchDaemons/com.apple.mobile.softwareupdated.plist", "/System/Library/LaunchDaemons/com.apple.mobile.softwareupdated.plist.bak");
+    }
 }
