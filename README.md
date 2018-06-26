@@ -1,5 +1,8 @@
 # Sn0wF4ll
 
+Credits:
+Uses jakeashacks empty_list and males use of files from LycaJB and other jailbreaks not publicly released
+
 UNSAFE BUILD: Installs Cydia and substrate (is a full jailbreak for 11.2.x)
 
 IF YOU VALUE YOUR DEVICE WAIT FOR UPDATES!!!
