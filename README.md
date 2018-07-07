@@ -2,9 +2,15 @@
 
 README FILE FROM JAKEASHACKS 
 
-UNSAFE BUILD: Installs Cydia and substrate (is a full jailbreak for 11.2.x)
+If you are having trouble with Electra1131 but still want to run tweaks:
+consider using Sn0wF4ll Toolkit
 
-IF YOU VALUE YOUR DEVICE STAY AWAY
+Sn0wF4ll2.0: Electra Toolkit but for ios 11.3.1
+manually install tweaks to: /var/containers/Bundle/tweaksupport/Library
+Just like in the electra betas!
+
+Should have increased success rate like with original Sn0wF4ll jailbreak 
+ENJOY :)
 
 iOS 11.0-11.3.1 jailbreak. Gets root, escapes sandbox, patches codesign (userland only), bind shell, nvram unlock (from Electra), host_get_special_port 4 (from Electra), code injection (from Electra; injects its amfid patch after using QiLin's since it's way better), ~~SSH (dropbear)~~
 
