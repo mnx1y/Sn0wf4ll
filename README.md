@@ -10,6 +10,11 @@ Sn0wF4ll2.0: Electra Toolkit but for ios 11.3.1
 manually install tweaks to: /var/containers/Bundle/tweaksupport/Library
 Just like in the electra betas!
 
+Patch deb files like with jakeajames rootlessjb 
+
+Link to tweak files for those that don't know how to patch them using the Patcher:
+https://mega.nz/#!1yIBBYaL!PqWngJOIWva2zQxPjem8ZciNXM_1HXmean7uSeiLO68
+
 Should have increased success rate like with original Sn0wF4ll jailbreak 
 ENJOY :)
 
